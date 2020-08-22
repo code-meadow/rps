@@ -1,0 +1,13 @@
+.PlayerArea {
+    display: flex;
+}
+
+.PlayerArea-PlayerOne,
+.PlayerArea-PlayerTwo {
+    overflow: hidden;
+}
+
+.PlayerArea iframe {
+    width: 400px;
+    height: 400px;
+}
