@@ -1,7 +1,7 @@
 const { src, dest } = require('gulp');
 
 const build = () => src("./src/*")
-    .pipe(dest("./dist"));
+    .pipe(dest("./docs"));
 
 module.exports = {
     build
