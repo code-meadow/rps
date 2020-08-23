@@ -13,10 +13,15 @@
     width: 100%;
     grid-template-columns: 1fr 1fr;
     min-height: 360px;
+    gap: 8px;
 }
 
 .PlayerArea-Player {
     overflow: hidden;
+    display: grid;
+    grid-template-rows: 60px 1fr 60px;
+    border: 10px outset var(--c1);
+    padding: 0 8px;
 }
 
 .Player-Name {
@@ -25,6 +30,8 @@
 
 .Player-Image {
     width: 180px;
+    justify-content: center;
+    align-self: center;
 }
 
 .ScoreArea {
