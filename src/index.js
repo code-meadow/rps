@@ -7,7 +7,8 @@ const scores = [0, 0];
 const pool = [
     "https://the-coinsman-rps.ceagrass.workers.dev",
     "https://rps.andrewgrass.workers.dev",
-    "https://the-burger-rps.ceagrass.workers.dev"
+    "https://the-burger-rps.ceagrass.workers.dev",
+    "https://yugiboy-rps.ceagrass.workers.dev"
 ]
 const players = [null, null];
 document.addEventListener("DOMContentLoaded", () => {
