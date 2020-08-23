@@ -13,7 +13,6 @@ const pool = [
 const players = [null, null];
 document.addEventListener("DOMContentLoaded", () => {
     newPlayers();
-    updatePlayerArea();
     updateScores(scores);
     let playButton = document.querySelector("button.play");
     playButton.addEventListener("click", async () => {
@@ -33,6 +32,8 @@ function newPlayers() {
     result = "new-players";
     playerOneChoice = "nothing yet";
     playerTwoChoice = "nothing yet";
+    scores[0] = 0;
+    scores[1] = 0;
     players[0] = pool[Math.floor(Math.random() * pool.length)]
     players[1] = players[0];
     while (players[0] === players[1] && pool.length > 1) {
@@ -57,15 +58,22 @@ function setPlayerArea(area, bio) {
 }
 
 async function updatePlayerArea() {
-    const playerOneArea = document.querySelector(".PlayerArea .PlayerArea-PlayerOne")
-    const playerOneBio = await fetch(players[0] + "/bio.json").then(res => res.json());
-    playerOneArea.innerHTML = "";
-    setPlayerArea(playerOneArea, playerOneBio);
+    const playerOneArea = document.querySelector(".PlayerArea .PlayerOne")
+    const playerTwoArea = document.querySelector(".PlayerArea .PlayerTwo")
+    Promise.all([
+        fetch(players[0] + "/bio.json").then(res => res.json()),
+        fetch(players[1] + "/bio.json").then(res => res.json())
+    ]).then(([playerOneBio, playerTwoBio]) => {
+        playerOneArea.innerHTML = "";
+        setPlayerArea(playerOneArea, playerOneBio);
 
-    const playerTwoArea = document.querySelector(".PlayerArea .PlayerArea-PlayerTwo")
-    const playerTwoBio = await fetch(players[1] + "/bio.json").then(res => res.json());
-    playerTwoArea.innerHTML = "";
-    setPlayerArea(playerTwoArea, playerTwoArea);
+        playerTwoArea.innerHTML = "";
+        setPlayerArea(playerTwoArea, playerTwoBio);
+    })
+        .catch(err => {
+            playerOneArea.innerText = "Had trouble fetching the player. Please try again."
+            playerTwoArea.innerText = "Had trouble fetching the player. Please try again."
+        })
 }
 
 function updateScores() {

@@ -30,19 +30,22 @@ body {
 }
 
 .PlayerArea {
-    display: flex;
+    display: grid;
     width: 100%;
+    grid-template-columns: 1fr 1fr;
+    min-height: 360px;
 }
 
-.PlayerArea-PlayerOne,
-.PlayerArea-PlayerTwo {
+.PlayerArea-Player {
     overflow: hidden;
-    height: 360px;
 }
 
-.PlayerArea iframe {
-    width: 400px;
-    height: 400px;
+.Player-Name {
+    margin: 0;
+}
+
+.Player-Image {
+    width: 180px;
 }
 
 .ScoreArea {
