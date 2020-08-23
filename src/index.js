@@ -1,15 +1,11 @@
+import pool from './pool.js';
 let roundsPlayed = 0;
 let tiesPlayed = 0;
 let result = "new-game";
 let playerOneChoice = "nothing yet";
 let playerTwoChoice = "nothing yet";
 const scores = [0, 0];
-const pool = [
-    "https://the-coinsman-rps.ceagrass.workers.dev",
-    "https://rps.andrewgrass.workers.dev",
-    "https://the-burger-rps.ceagrass.workers.dev",
-    "https://yugiboy-rps.ceagrass.workers.dev"
-]
+
 const players = [null, null];
 document.addEventListener("DOMContentLoaded", () => {
     newPlayers();
@@ -49,6 +45,7 @@ function setPlayerArea(area, bio) {
     area.appendChild(playerName);
     const playerImage = document.createElement("img");
     playerImage.classList.add("Player-Image");
+    playerImage.setAttribute("alt", bio.name);
     playerImage.src = bio.image_url;
     area.appendChild(playerImage);
     const playerDescription = document.createElement("p");

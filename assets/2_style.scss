@@ -1,0 +1,45 @@
+.Header {
+    width: 100%;
+    height: 60px;
+}
+
+.Header h1 {
+    margin: 0;
+    text-align: center;
+}
+
+.PlayerArea {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+    min-height: 360px;
+}
+
+.PlayerArea-Player {
+    overflow: hidden;
+}
+
+.Player-Name {
+    margin: 0;
+}
+
+.Player-Image {
+    width: 180px;
+}
+
+.ScoreArea {
+    height: 60px;
+    text-align: center;
+    font-size: 2em;
+}
+
+.ResultArea {
+    height: 60px;
+}
+
+.PlayArea {
+    display: flex;
+    flex-direction: column;
+    max-width: 800px;
+    gap: 8px;
+}
