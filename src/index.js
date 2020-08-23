@@ -41,18 +41,31 @@ function newPlayers() {
     updatePlayerArea();
 }
 
-function updatePlayerArea() {
+function setPlayerArea(area, bio) {
+    const playerName = document.createElement("h2");
+    playerName.classList.add("Player-Name");
+    playerName.innerText = bio.name;
+    area.appendChild(playerName);
+    const playerImage = document.createElement("img");
+    playerImage.classList.add("Player-Image");
+    playerImage.src = bio.image_url;
+    area.appendChild(playerImage);
+    const playerDescription = document.createElement("p");
+    playerDescription.classList.add("Player-Description");
+    playerDescription.innerText = bio.strategy;
+    area.appendChild(playerDescription);
+}
+
+async function updatePlayerArea() {
     const playerOneArea = document.querySelector(".PlayerArea .PlayerArea-PlayerOne")
+    const playerOneBio = await fetch(players[0] + "/bio.json").then(res => res.json());
     playerOneArea.innerHTML = "";
-    const playerOneIframe = document.createElement("iframe");
-    playerOneIframe.src = players[0] + "/bio";
-    playerOneArea.appendChild(playerOneIframe);
+    setPlayerArea(playerOneArea, playerOneBio);
 
     const playerTwoArea = document.querySelector(".PlayerArea .PlayerArea-PlayerTwo")
+    const playerTwoBio = await fetch(players[1] + "/bio.json").then(res => res.json());
     playerTwoArea.innerHTML = "";
-    const playerTwoIframe = document.createElement("iframe");
-    playerTwoIframe.src = players[1] + "/bio";
-    playerTwoArea.appendChild(playerTwoIframe);
+    setPlayerArea(playerTwoArea, playerTwoArea);
 }
 
 function updateScores() {
