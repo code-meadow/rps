@@ -5,8 +5,12 @@ const postcss = require('gulp-postcss');
 const autoprefixer = require('autoprefixer');
 const cssnano = require('cssnano');
 const concat = require('gulp-concat');
-const rollup = require('gulp-rollup');
 const del = require('del');
+const open = require('open');
+const { rollup } = require('rollup');
+const commonjs = require('@rollup/plugin-commonjs');
+const { nodeResolve } = require('@rollup/plugin-node-resolve');
+const { terser } = require('rollup-plugin-terser');
 
 const PORT = 7856;
 
@@ -24,32 +28,50 @@ const buildCss = () => src("./assets/**/*.scss")
     ]))
     .pipe(dest('./docs'));
 
-const buildJs = () => src("./src/**/*.js")
-    .pipe(rollup({
+const buildJs = () => {
+    return rollup({
         input: './src/index.js',
         output: {
             format: 'iife'
-        }
-    }))
-    .pipe(dest('./docs'));
+        },
+        plugins: [
+            nodeResolve(),
+            commonjs(),
+            terser()
+        ]
+    }).then(bundle => {
+        return bundle.write({
+            file: './docs/index.js',
+            format: 'iife',
+            name: 'index',
+            sourcemap: false
+        });
+    })
+}
 
 const build = series(copyStatic, parallel(buildCss, buildJs));
 
-const createLocalServerTask = () => () => {
+const createLocalServerTask = () => (done) => {
     const app = express();
 
     app.use("/", express.static("./docs"));
 
     app.listen(PORT, "127.0.0.1", () => {
         console.log("Your local server is now running at http://127.0.0.1:" + PORT)
+        done();
     });
 }
 
-const watchSrc = () => watch(["./src/*"], build);
+const watchSrc = () => watch(["./src/*", "./assets/*"], build);
 
 const dev = series(
     build,
-    parallel(createLocalServerTask(), watchSrc)
+    parallel(
+        series(
+            createLocalServerTask(),
+            () => open("http://localhost:" + PORT)
+        ),
+        watchSrc)
 );
 
 module.exports = {

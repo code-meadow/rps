@@ -1,121 +1,145 @@
 import pool from './pool.js';
-let roundsPlayed = 0;
-let tiesPlayed = 0;
-let result = "new-game";
-let playerOneChoice = "nothing yet";
-let playerTwoChoice = "nothing yet";
-const scores = [0, 0];
+import { h, text, patch } from 'superfine';
 
-const players = [null, null];
-document.addEventListener("DOMContentLoaded", () => {
-    newPlayers();
-    updateScores(scores);
-    let playButton = document.querySelector("button.play");
-    playButton.addEventListener("click", async () => {
-        await playRound();
-        updateScores();
-    })
-    let newPlayersButton = document.querySelector("button.new-players");
-    newPlayersButton.addEventListener("click", async () => {
-        newPlayers();
-        updateScores();
-    });
-});
+const initialScoring = {
+    playerOneScore: 0,
+    playerTwoScore: 0,
+    roundsPlayed: 0,
+    tiesPlayed: 0,
+    result: "new-players",
+    playerOneChoice: "nothing yet",
+    playerTwoChoice: "nothing yet",
+};
 
-function newPlayers() {
-    roundsPlayed = 0;
-    tiesPlayed = 0;
-    result = "new-players";
-    playerOneChoice = "nothing yet";
-    playerTwoChoice = "nothing yet";
-    scores[0] = 0;
-    scores[1] = 0;
-    players[0] = pool[Math.floor(Math.random() * pool.length)]
-    players[1] = players[0];
-    while (players[0] === players[1] && pool.length > 1) {
-        players[1] = pool[Math.floor(Math.random() * pool.length)]
+const initialState = {
+    ...initialScoring,
+    playerOneBio: {},
+    playerTwoBio: {},
+    error: false
+};
+
+async function updatePlayers(state) {
+    let playerOne = pool[Math.floor(Math.random() * pool.length)]
+    let playerTwo = playerOne;
+    while (playerOne === playerTwo && pool.length > 1) {
+        playerTwo = pool[Math.floor(Math.random() * pool.length)]
     }
-    updatePlayerArea();
+
+    try {
+        const [playerOneBio, playerTwoBio] = await Promise.all([
+            fetch(playerOne + "/bio.json").then(res => res.json()),
+            fetch(playerTwo + "/bio.json").then(res => res.json())
+        ]);
+
+        return {
+            ...state,
+            ...initialScoring,
+            players: [playerOne, playerTwo],
+            playerOneBio,
+            playerTwoBio,
+            error: false
+        }
+    } catch {
+        return {
+            ...state,
+            ...initialScoring,
+            players: [null, null],
+            playerOneBio: {},
+            playerTwoBio: {},
+            error: "Had trouble fetching the player. Please try again."
+        }
+    }
 }
 
-function setPlayerArea(area, bio) {
-    const playerName = document.createElement("h2");
-    playerName.classList.add("Player-Name");
-    playerName.innerText = bio.name;
-    area.appendChild(playerName);
-    const playerImage = document.createElement("img");
-    playerImage.classList.add("Player-Image");
-    playerImage.setAttribute("alt", bio.name);
-    playerImage.src = bio.image_url;
-    area.appendChild(playerImage);
-    const playerDescription = document.createElement("p");
-    playerDescription.classList.add("Player-Description");
-    playerDescription.innerText = bio.strategy;
-    area.appendChild(playerDescription);
-}
-
-async function updatePlayerArea() {
-    const playerOneArea = document.querySelector(".PlayerArea .PlayerOne")
-    const playerTwoArea = document.querySelector(".PlayerArea .PlayerTwo")
-    Promise.all([
-        fetch(players[0] + "/bio.json").then(res => res.json()),
-        fetch(players[1] + "/bio.json").then(res => res.json())
-    ]).then(([playerOneBio, playerTwoBio]) => {
-        playerOneArea.innerHTML = "";
-        setPlayerArea(playerOneArea, playerOneBio);
-
-        playerTwoArea.innerHTML = "";
-        setPlayerArea(playerTwoArea, playerTwoBio);
-    })
-        .catch(err => {
-            playerOneArea.innerText = "Had trouble fetching the player. Please try again."
-            playerTwoArea.innerText = "Had trouble fetching the player. Please try again."
-        })
-}
-
-function updateScores() {
-    document.querySelector(".RoundsArea").innerText = roundsPlayed + " rounds played. " + tiesPlayed + " were ties.";
-    document.querySelector(".ScoreArea").innerText = scores.join("-");
-    document.querySelector(".ResultArea").innerText = "Player One chose " + playerOneChoice + ". Player Two chose " + playerTwoChoice + ". " + result;
-}
-
-async function playRound() {
+async function playRound(state) {
     const results = await Promise.all([
-        fetch(players[0] + "/rps").then(res => res.text()),
-        fetch(players[1] + "/rps").then(res => res.text())
+        fetch(state.players[0] + "/rps").then(res => res.text()),
+        fetch(state.players[1] + "/rps").then(res => res.text())
     ]);
 
-    playerOneChoice = results[0];
-    playerTwoChoice = results[1];
+    let playerOneScore = state.playerOneScore;
+    let playerTwoScore = state.playerTwoScore;
+    let result = '';
+    let tiesPlayed = state.tiesPlayed;
 
-    if (results[0] === "rock" && results[1] === "rock") {
+    const wins = {
+        "rock": {
+            "scissors": true
+        },
+        "paper": {
+            "rock": true
+        },
+        "scissors": {
+            "paper": true
+        }
+    };
+
+    if (results[0] === results[1]) {
         result = "Tie!";
         tiesPlayed++;
-    } else if (results[0] === "rock" && results[1] === "paper") {
-        result = "Player Two Wins!";
-        scores[1]++;
-    } else if (results[0] === "rock" && results[1] === "scissors") {
+    } else if (wins[results[0]][results[1]]) {
         result = "Player One Wins!";
-        scores[0]++;
-    } else if (results[0] === "paper" && results[1] === "paper") {
-        result = "Tie!";
-        tiesPlayed++;
-    } else if (results[0] === "paper" && results[1] === "scissors") {
+        playerOneScore++;
+    } else {
         result = "Player Two Wins!";
-        scores[1]++;
-    } else if (results[0] === "paper" && results[1] === "rock") {
-        result = "Player One Wins!";
-        scores[0]++;
-    } else if (results[0] === "scissors" && results[1] === "scissors") {
-        result = "Tie!";
-        tiesPlayed++;
-    } else if (results[0] === "scissors" && results[1] === "rock") {
-        result = "Player Two Wins!";
-        scores[1]++;
-    } else if (results[0] === "scissors" && results[1] === "paper") {
-        result = "Player One Wins!";
-        scores[0]++;
+        playerTwoScore++;
     }
 
-    roundsPlayed++;
+    return {
+        ...state,
+        roundsPlayed: state.roundsPlayed + 1,
+        tiesPlayed,
+        result,
+        playerOneChoice: results[0],
+        playerTwoChoice: results[1],
+        playerOneScore,
+        playerTwoScore
+    }
 }
+
+class Cel {
+    static PlayerArea(state) {
+        if (state.error) {
+            return h("div", { class: "PlayerArea error" }, text(state.error));
+        }
+
+        return h("div", { class: "PlayerArea" }, [
+            Cel.Player(state.playerOneBio),
+            Cel.Player(state.playerTwoBio)
+        ])
+    }
+    static Player(bio) {
+        return h("div", { class: "PlayerArea-Player" }, [
+            h("h2", { class: "Player-Name" }, text(bio.name)),
+            h("img", { class: "Player-Image", alt: bio.name, src: bio.image_url }),
+            h("p", { class: "Player-Description" }, text(bio.strategy))
+        ]);
+    }
+}
+
+const setState = (state) => patch(
+    document.getElementById("app"),
+    h("main", {}, [
+        h("div", { class: "Header" }, [
+            h("h1", {}, text("Rock! Paper! Scissors!"))
+        ]),
+        Cel.PlayerArea(state),
+        h("div", { class: "RoundsArea" }, text(state.roundsPlayed + " rounds played. " + state.tiesPlayed + " were ties.")),
+        h("div", { class: "ScoreArea" }, text([state.playerOneScore, state.playerTwoScore].join('-'))),
+        h("div", { class: "ResultArea" }, text("Player One chose " + state.playerOneChoice + ". Player Two chose " + state.playerTwoChoice + ". " + state.result)),
+        h("div", { class: "PlayArea" }, [
+            h("button", {
+                class: "play",
+                onclick: async () => setState(await playRound(state))
+            }, text("Rock! Paper! Scissors!")),
+            h("button", {
+                class: "new-players secondary",
+                onclick: async () => setState(await updatePlayers(state))
+            }, text("Reset with New Players"))
+        ])
+    ])
+)
+
+document.addEventListener("DOMContentLoaded", async () => {
+    setState(await updatePlayers(initialState));
+});
